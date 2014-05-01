@@ -116,11 +116,29 @@ class MACAddressField(models.Field):
         defaults.update(kwargs)
         return super(MACAddressField, self).formfield(**defaults)
 
+class IP4RField(_NetAddressField):
+    description = "PostgreSQL ip4r extension ip4r type"
+    max_length = len("255.255.255.255-255.255.255.255")
+    __metaclas__ = models.SubfieldBase
+
+    def db_type(self, connection):
+        return 'ip4r'
+
+    # Could convert to IPRange/IPNetwork/IPAddress here
+    # instead of strings in a to_python() method.
+
+    def get_prep_value(self, value):
+        if not value:
+            return None
+
+        return unicode(value)
+
 try:
     from south.modelsinspector import add_introspection_rules
     add_introspection_rules([], [
         "^netfields\.fields\.InetAddressField",
         "^netfields\.fields\.CidrAddressField",
+        "^netfields\.fields\.IP4RAddressField",
         "^netfields\.fields\.MACAddressField",
     ])
 except ImportError:

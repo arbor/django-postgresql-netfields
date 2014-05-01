@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from netfields.models import (CidrTestModel, InetTestModel, NullCidrTestModel,
                               NullInetTestModel, UniqueInetTestModel,
-                              UniqueCidrTestModel, MACTestModel)
+                              UniqueCidrTestModel, IP4RTestModel, MACTestModel)
 from netfields.mac import mac_unix_common
 
 
@@ -168,6 +168,43 @@ class BaseCidrFieldTestCase(BaseInetTestCase):
         self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
             self.select + 'WHERE "table"."field" >>= %s ')
 
+class BaseIP4RFieldTestCase(BaseInetTestCase):
+    value1 = '10.0.0.1'
+    value2 = '10.0.0.2'
+    value3 = '10.0.0.255'
+
+    def test_startswith_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__startswith='10.'),
+            self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
+
+    def test_istartswith_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__istartswith='10.'),
+            self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
+
+    def test_endswith_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__endswith='.1'),
+            self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
+
+    def test_iendswith_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__iendswith='.1'),
+            self.select + 'WHERE TEXT("table"."field") ILIKE %s ')
+
+    def test_regex_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__regex='10'),
+            self.select + 'WHERE TEXT("table"."field") ~* %s ')
+
+    def test_iregex_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__iregex='10'),
+            self.select + 'WHERE TEXT("table"."field") ~* %s ')
+
+    def test_net_contains_lookup(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contains='10.0.0.1'),
+            self.select + 'WHERE "table"."field" >> %s ')
+
+    def test_net_contains_or_equals(self):
+        self.assertSqlEquals(self.qs.filter(field__net_contains_or_equals='10.0.0.1'),
+            self.select + 'WHERE "table"."field" >>= %s ')
+
 
 class TestInetField(BaseInetFieldTestCase, TestCase):
     def setUp(self):
@@ -254,6 +291,20 @@ class TestCidrFieldUnique(BaseCidrFieldTestCase, TestCase):
         self.model(field='1.2.3.0/24').save()
         self.assertRaises(IntegrityError, self.model(field='1.2.3.0/24').save)
 
+class TestIP4RField(BaseIP4RFieldTestCase, TestCase):
+    def setUp(self):
+        self.model = IP4RTestModel
+        self.qs = self.model.objects.all()
+        self.table = 'ip4rtest'
+
+    def test_save_blank_fails(self):
+        self.assertRaises(IntegrityError, self.model(field='').save)
+
+    def test_save_none_fails(self):
+        self.assertRaises(IntegrityError, self.model(field=None).save)
+
+    def test_save_nothing_fails(self):
+        self.assertRaises(IntegrityError, self.model().save)
 
 class InetAddressTestModelForm(ModelForm):
     class Meta:

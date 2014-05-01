@@ -115,7 +115,7 @@ class NetWhere(sql.where.WhereNode):
 
         table_alias, name, db_type = lvalue
 
-        if db_type not in ['inet', 'cidr']:
+        if db_type not in ['inet', 'cidr', 'ip4r']:
             return super(NetWhere, self).make_atom(child, qn, conn)
 
         if table_alias:

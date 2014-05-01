@@ -24,6 +24,8 @@ Current version of code is targeting Django 1.3-1.4 support, as this relies
 heavily on ORM internals supporting multiple versions is especially tricky. The
 ``netaddr`` module is used for the same reasons.
 
+Usage of the IP4RField requires the ``ip4r`` extension be added to postgres.
+
 Getting started
 ---------------
 

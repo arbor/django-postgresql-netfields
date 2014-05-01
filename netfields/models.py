@@ -52,6 +52,15 @@ class UniqueCidrTestModel(Model):
         db_table = 'uniquecidr'
 
 
+class IP4RTestModel(Model):
+    field = CidrAddressField()
+    objects = NetManager()
+
+    class Meta:
+        # Table name can't be type name?
+        db_table = 'ip4rtest'
+
+
 class MACTestModel(Model):
     field = MACAddressField(null=True)
     objects = NetManager()
